@@ -2,236 +2,163 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TabAssist - Side Panel</title>
+  <title>TabAssist</title>
   <style>
     * {
       box-sizing: border-box;
     }
-    html, body {
-      height: 100vh;
+    body {
+      width: 280px;
+      padding: 14px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
       margin: 0;
-      padding: 12px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #0d1117;
-      color: #e6edf3;
       user-select: none;
-      overflow-x: hidden;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #21262d;
-      padding-bottom: 8px;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .logo-icon {
-      font-size: 1.3rem;
     }
     h2 {
       font-size: 1.1rem;
-      margin: 0;
+      margin: 0 0 4px 0;
       color: #38bdf8;
       font-weight: 700;
-      letter-spacing: -0.3px;
     }
     .subtitle {
-      font-size: 0.72rem;
-      color: #8b949e;
-      margin-top: 1px;
-    }
-
-    .video-card {
-      background-color: #161b22;
-      border-radius: 12px;
-      padding: 10px;
-      border: 1px solid #30363d;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-bottom: 12px;
     }
 
     .video-wrapper {
       position: relative;
       width: 100%;
-      max-height: 200px;
-      aspect-ratio: 4 / 3;
-      background-color: #0d1117;
+      height: 180px;
+      background-color: #1e293b;
       border-radius: 8px;
       overflow: hidden;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px dashed #30363d;
+      border: 1px solid #334155;
     }
-
     video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transform: scaleX(-1);
-      border-radius: 8px;
     }
-
     .video-placeholder {
       position: absolute;
-      color: #8b949e;
+      color: #64748b;
       font-size: 0.8rem;
       text-align: center;
-      padding: 12px;
+      padding: 10px;
       line-height: 1.4;
     }
 
     .btn-group {
       display: flex;
       gap: 8px;
-      width: 100%;
+      margin-bottom: 12px;
     }
     button {
       flex: 1;
-      width: 100%;
-      padding: 0.65rem;
+      padding: 0.6rem;
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: bold;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      transition: background-color 0.2s ease;
     }
     #startBtn {
-      background-color: #0284c7;
-      color: #ffffff;
+      background-color: #38bdf8;
+      color: #0f172a;
     }
     #startBtn:hover {
-      background-color: #0369a1;
+      background-color: #7dd3fc;
     }
     #stopBtn {
-      background-color: #dc2626;
+      background-color: #ef4444;
       color: #ffffff;
       display: none;
     }
     #stopBtn:hover {
-      background-color: #b91c1c;
+      background-color: #f87171;
     }
 
-    .control-card {
-      background-color: #161b22;
-      border-radius: 12px;
-      padding: 12px;
-      border: 1px solid #30363d;
-      width: 100%;
+    .control-group {
+      background: #1e293b;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
     }
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #c9d1d9;
+    label {
+      display: block;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
     }
     .val-display {
       color: #38bdf8;
-      font-weight: 700;
-      font-size: 0.85rem;
-      background: rgba(56, 189, 248, 0.1);
-      padding: 2px 8px;
-      border-radius: 6px;
+      font-weight: bold;
     }
     input[type="range"] {
       width: 100%;
-      accent-color: #38bdf8;
       cursor: pointer;
+      accent-color: #38bdf8;
     }
 
     #statusIndicator {
-      width: 100%;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       text-align: center;
-      padding: 8px;
-      border-radius: 6px;
-      background-color: #21262d;
-      color: #8b949e;
+      padding: 6px;
+      border-radius: 4px;
+      background-color: #334155;
+      color: #94a3b8;
       font-weight: 600;
-      letter-spacing: 0.3px;
-      transition: all 0.3s ease;
     }
     #statusIndicator.active {
-      background-color: rgba(34, 197, 94, 0.15);
-      color: #4ade80;
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      background-color: #22c55e;
+      color: #0f172a;
     }
     #statusIndicator.error {
-      background-color: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background-color: #ef4444;
+      color: #ffffff;
     }
     
     .privacy-badge {
-      font-size: 0.68rem;
-      color: #6e7681;
+      font-size: 0.65rem;
+      color: #64748b;
       text-align: center;
-      margin-top: auto;
-      padding-top: 8px;
-      border-top: 1px solid #21262d;
-      width: 100%;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="brand">
-      <span class="logo-icon">🎸</span>
-      <div>
-        <h2>TabAssist</h2>
-        <div class="subtitle">Songsterr Gesture Navigation</div>
-      </div>
-    </div>
+  <h2>TabAssist</h2>
+  <div class="subtitle">Hands-free Songsterr tab navigation</div>
+
+  <div class="video-wrapper">
+    <div id="placeholder" class="video-placeholder">Camera is off.<br>Click Start to begin tracking.</div>
+    <video id="webcam" autoplay playsinline style="display:none;"></video>
   </div>
 
-  <div class="video-card">
-    <div class="video-wrapper">
-      <div id="placeholder" class="video-placeholder">
-        📷 Camera is currently off.<br>Click <strong>Start Tracking</strong> below.
-      </div>
-      <video id="webcam" autoplay playsinline style="display:none;"></video>
-    </div>
-
-    <div class="btn-group">
-      <button id="startBtn">▶ Start Tracking</button>
-      <button id="stopBtn">⏹ Stop Camera</button>
-    </div>
+  <div class="btn-group">
+    <button id="startBtn">Start Camera</button>
+    <button id="stopBtn">Stop Camera</button>
   </div>
 
-  <div class="control-card">
-    <div class="slider-header">
-      <span>Measures per Jump:</span>
-      <span id="jumpVal" class="val-display">4</span>
-    </div>
+  <div class="control-group">
+    <label for="jumpSlider">
+      Measures per Jump: <span id="jumpVal" class="val-display">4</span>
+    </label>
     <input type="range" id="jumpSlider" min="1" max="16" step="1" value="4" />
   </div>
 
-  <div id="statusIndicator">CAMERA INACTIVE</div>
+  <div id="statusIndicator">CAMERA OFF</div>
 
-  <div class="privacy-badge">
-    🔒 100% On-Device Vision (Private & Local)
-  </div>
+  <div class="privacy-badge">🔒 100% On-Device Processing</div>
 
   <script src="lib/vision_bundle.js"></script>
   <script src="popup.js"></script>

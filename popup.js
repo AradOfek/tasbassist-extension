@@ -1,5 +1,5 @@
 /**
- * TabAssist Extension Panel Script
+ * TabAssist Extension Popup Script
  * 
  * Controls camera access, initializes MediaPipe face landmark tracking via local WASM assets,
  * detects downward head nod gestures, and dispatches jump events to active Songsterr tabs.
@@ -121,7 +121,7 @@ async function startCamera() {
     placeholder.style.display = "none";
     videoElement.style.display = "block";
     startBtn.style.display = "none";
-    stopBtn.style.display = "flex";
+    stopBtn.style.display = "block";
 
     statusIndicator.textContent = "TRACKING ACTIVE";
     statusIndicator.className = "active";
@@ -163,7 +163,7 @@ function stopCamera() {
   videoElement.srcObject = null;
   videoElement.style.display = "none";
   placeholder.style.display = "block";
-  startBtn.style.display = "flex";
+  startBtn.style.display = "block";
   stopBtn.style.display = "none";
 
   statusIndicator.textContent = "CAMERA STOPPED";
