@@ -61,35 +61,50 @@ async function initMediaPipe() {
   statusIndicator.textContent = "LOADING AI ENGINE...";
   statusIndicator.className = "";
 
-  // vision_bundle.js exposes window.FilesetResolver and window.FaceLandmarker globally
-  const vision = window;
+  // The vision_bundle.js IIFE defines the global 'Vision' object
+  const vision = window.Vision || window;
+  
   if (!vision.FilesetResolver || !vision.FaceLandmarker) {
-    throw new Error("MediaPipe vision bundle failed to load.");
+    console.error("[TabAssist Debug] MediaPipe Vision exports missing. Global Vision object:", window.Vision);
+    throw new Error("MediaPipe Vision library bundle failed to load.");
   }
 
-  const filesetResolver = await vision.FilesetResolver.forVisionTasks("lib");
+  // Resolve WASM assets relative to extension root URL
+  const wasmPath = extensionAPI.runtime.getURL("lib");
+  const modelPath = extensionAPI.runtime.getURL("lib/face_landmarker.task");
+
+  console.log("[TabAssist Debug] Resolving WASM assets from:", wasmPath);
+  console.log("[TabAssist Debug] Loading model asset from:", modelPath);
+
+  const filesetResolver = await vision.FilesetResolver.forVisionTasks(wasmPath);
 
   faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
     baseOptions: {
-      modelAssetPath: "lib/face_landmarker.task",
+      modelAssetPath: modelPath,
       delegate: "GPU"
     },
     runningMode: "VIDEO",
     numFaces: 1
   });
+
+  console.log("[TabAssist Debug] MediaPipe FaceLandmarker successfully initialized.");
 }
 
 /**
  * Requests camera permission, initializes video stream and starts face tracking loop.
  */
 async function startCamera() {
+  console.log("[TabAssist Debug] Start Camera clicked. Initializing tracking pipeline...");
   try {
     await initMediaPipe();
 
+    console.log("[TabAssist Debug] Requesting getUserMedia camera stream...");
     cameraStream = await navigator.mediaDevices.getUserMedia({
       video: { width: 320, height: 240, frameRate: { ideal: 30 } },
       audio: false
     });
+
+    console.log("[TabAssist Debug] Camera stream obtained:", cameraStream);
 
     videoElement.srcObject = cameraStream;
     placeholder.style.display = "none";
@@ -102,9 +117,12 @@ async function startCamera() {
 
     // Play video stream explicitly to ensure continuous frame processing
     await videoElement.play();
+    console.log("[TabAssist Debug] Video playback started. Launching prediction loop...");
     predictWebcam();
   } catch (err) {
-    console.error("Camera setup failed:", err);
+    console.error("[TabAssist Debug] Detailed Camera / MediaPipe Error:", err);
+    console.error("[TabAssist Debug] Error Name:", err.name, "| Message:", err.message, "| Stack:", err.stack);
+    
     statusIndicator.textContent = err.name === "NotAllowedError" ? "CAMERA PERMISSION DENIED" : "CAMERA ERROR";
     statusIndicator.className = "error";
   }
@@ -114,6 +132,7 @@ async function startCamera() {
  * Stops active webcam tracks and halts the frame processing loop.
  */
 function stopCamera() {
+  console.log("[TabAssist Debug] Stopping camera and cleaning up resources...");
   if (cameraStream) {
     cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
@@ -185,7 +204,7 @@ function predictWebcam() {
         }
       }
     } catch (error) {
-      console.error("Frame landmark detection error:", error);
+      console.error("[TabAssist Debug] Frame landmark detection error:", error);
     }
   }
 

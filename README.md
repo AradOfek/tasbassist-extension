@@ -13,6 +13,7 @@ With TabAssist, you can scroll through tabs while holding your instrument by giv
 - **Guitar Glance Filtering**: Built-in gesture logic filters out prolonged head lowering (like glancing down at your guitar neck or fretboard) to prevent accidental triggers.
 - **Configurable Jump Sensitivity**: Customize how many measures/lines forward each nod jump advances (1 to 16 measures).
 - **Fully Offline Ready**: Self-contained web assembly bundles with zero reliance on external CDNs or remote dependencies.
+- **Developer Debug Logging**: Verbose debug logs in the extension popup dev tools for easy troubleshooting.
 
 ---
 
@@ -31,6 +32,16 @@ tasbassist-extension/
 │   └── face_landmarker.task # Quantized face landmark detection model
 └── README.md
 ```
+
+---
+
+## 📌 Important Note on Browser Popup Behavior
+
+In Chrome Manifest V3 extensions, **toolbar popup windows automatically close** whenever you click anywhere outside the popup (e.g., clicking on the Songsterr webpage to focus or scroll). When the popup closes, its DOM context and webcam stream are destroyed by Chrome.
+
+### 💡 Recommended Setup for Practice Sessions:
+- **Pin Extension / Keep Open**: If you want to view the camera preview while practicing, **right-click the extension icon or popup title bar and select "Inspect"** (or inspect popup element). Keeping DevTools open for the popup prevents Chrome from closing it when clicking on the tab!
+- Alternatively, you can use Chrome's **Side Panel API** or open the popup in its own window tab (`chrome-extension://<EXTENSION_ID>/popup.html`).
 
 ---
 
