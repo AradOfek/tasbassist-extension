@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "TabAssist",
+  "version": "1.0.0",
+  "description": "Hands-free guitar tab navigation on Songsterr via head gesture recognition.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.songsterr.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.songsterr.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TabAssist Settings"
+  }
+}

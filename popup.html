@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TabAssist</title>
+  <style>
+    body {
+      width: 280px;
+      padding: 14px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      margin: 0;
+      user-select: none;
+    }
+    h2 { font-size: 1.1rem; margin: 0 0 4px 0; color: #38bdf8; }
+    .subtitle { font-size: 0.75rem; color: #94a3b8; margin-bottom: 12px; }
+    
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background-color: #1e293b;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #334155;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+    .video-placeholder {
+      position: absolute;
+      color: #64748b;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 10px;
+      line-height: 1.4;
+    }
+
+    .btn-group { display: flex; gap: 8px; margin-bottom: 12px; }
+    button {
+      flex: 1;
+      padding: 0.6rem;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #startBtn { background-color: #38bdf8; color: #0f172a; }
+    #startBtn:hover { background-color: #7dd3fc; }
+    #stopBtn { background-color: #ef4444; color: #ffffff; display: none; }
+    #stopBtn:hover { background-color: #f87171; }
+
+    .control-group {
+      background: #1e293b;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    label { display: block; font-size: 0.8rem; margin-bottom: 6px; }
+    .val-display { color: #38bdf8; font-weight: bold; }
+    input[type="range"] { width: 100%; cursor: pointer; }
+
+    #statusIndicator {
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 6px;
+      border-radius: 4px;
+      background-color: #334155;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    #statusIndicator.active { background-color: #22c55e; color: #0f172a; }
+    #statusIndicator.error { background-color: #ef4444; color: #ffffff; }
+    
+    .privacy-badge {
+      font-size: 0.65rem;
+      color: #64748b;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>TabAssist</h2>
+  <div class="subtitle">Hands-free Songsterr tab navigation</div>
+
+  <div class="video-wrapper">
+    <div id="placeholder" class="video-placeholder">Camera is off.<br>Click Start to begin tracking.</div>
+    <video id="webcam" autoplay playsinline style="display:none;"></video>
+  </div>
+
+  <div class="btn-group">
+    <button id="startBtn">Start Camera</button>
+    <button id="stopBtn">Stop Sharing Camera</button>
+  </div>
+
+  <div class="control-group">
+    <label for="jumpSlider">
+      Measures per Jump: <span id="jumpVal" class="val-display">4</span>
+    </label>
+    <input type="range" id="jumpSlider" min="1" max="16" step="1" value="4" />
+  </div>
+
+  <div id="statusIndicator">CAMERA OFF</div>
+
+  <div class="privacy-badge">🔒 100% On-Device Processing</div>
+
+  <script src="lib/vision_bundle.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
