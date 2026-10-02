@@ -7,18 +7,19 @@
     * {
       box-sizing: border-box;
     }
-    body {
-      width: 100%;
+    html, body {
       height: 100vh;
-      padding: 16px;
+      margin: 0;
+      padding: 12px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #0d1117;
       color: #e6edf3;
-      margin: 0;
       user-select: none;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      overflow-x: hidden;
     }
 
     .header {
@@ -26,7 +27,7 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid #21262d;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
     .brand {
       display: flex;
@@ -34,10 +35,10 @@
       gap: 8px;
     }
     .logo-icon {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
     h2 {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       margin: 0;
       color: #38bdf8;
       font-weight: 700;
@@ -46,24 +47,26 @@
     .subtitle {
       font-size: 0.72rem;
       color: #8b949e;
-      margin-top: 2px;
+      margin-top: 1px;
     }
 
     .video-card {
       background-color: #161b22;
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
       border: 1px solid #30363d;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
       gap: 10px;
+      width: 100%;
     }
 
     .video-wrapper {
       position: relative;
       width: 100%;
-      height: 210px;
+      max-height: 200px;
+      aspect-ratio: 4 / 3;
       background-color: #0d1117;
       border-radius: 8px;
       overflow: hidden;
@@ -84,18 +87,20 @@
     .video-placeholder {
       position: absolute;
       color: #8b949e;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       text-align: center;
-      padding: 16px;
-      line-height: 1.5;
+      padding: 12px;
+      line-height: 1.4;
     }
 
     .btn-group {
       display: flex;
       gap: 8px;
+      width: 100%;
     }
     button {
       flex: 1;
+      width: 100%;
       padding: 0.65rem;
       font-size: 0.85rem;
       font-weight: 600;
@@ -127,8 +132,9 @@
     .control-card {
       background-color: #161b22;
       border-radius: 12px;
-      padding: 14px;
+      padding: 12px;
       border: 1px solid #30363d;
+      width: 100%;
     }
     .slider-header {
       display: flex;
@@ -142,7 +148,7 @@
     .val-display {
       color: #38bdf8;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       background: rgba(56, 189, 248, 0.1);
       padding: 2px 8px;
       border-radius: 6px;
@@ -154,6 +160,7 @@
     }
 
     #statusIndicator {
+      width: 100%;
       font-size: 0.78rem;
       text-align: center;
       padding: 8px;
@@ -176,12 +183,13 @@
     }
     
     .privacy-badge {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: #6e7681;
       text-align: center;
       margin-top: auto;
-      padding: 10px 0;
+      padding-top: 8px;
       border-top: 1px solid #21262d;
+      width: 100%;
     }
   </style>
 </head>
@@ -222,7 +230,7 @@
   <div id="statusIndicator">CAMERA INACTIVE</div>
 
   <div class="privacy-badge">
-    🔒 100% On-Device Computer Vision (Private & Local)
+    🔒 100% On-Device Vision (Private & Local)
   </div>
 
   <script src="lib/vision_bundle.js"></script>
