@@ -1,12 +1,11 @@
 /**
- * TabAssist Extension Popup Script
+ * TabAssist Extension Panel Script
  * 
- * Manages face tracking initialization via MediaPipe Tasks Vision,
- * controls webcam lifecycle, detects downward head nod gestures,
- * and communicates jump actions to active tab content scripts.
+ * Controls camera access, initializes MediaPipe face landmark tracking via local WASM assets,
+ * detects downward head nod gestures, and dispatches jump events to active Songsterr tabs.
  */
 
-// Universal extension API runtime compatibility layer
+// Universal browser runtime layer
 const extensionAPI = typeof browser !== 'undefined' ? browser : chrome;
 
 // DOM Elements
@@ -24,19 +23,17 @@ let cameraStream = null;
 let lastVideoTime = -1;
 let animFrameId = null;
 
-// Head nod detection parameters & tracking state
+// Head nod gesture parameters & tracking state
 let neutralNoseY = null;
 const NOD_THRESHOLD = 0.040;        // Normalized vertical movement threshold
-const MAX_NOD_DURATION_MS = 400;   // Maximum allowed duration for a nod gesture
-const COOLDOWN_MS = 800;           // Refractory delay between trigger actions
+const MAX_NOD_DURATION_MS = 400;   // Maximum duration for valid nod
+const COOLDOWN_MS = 800;           // Cooldown delay between jumps
 
 let isDipping = false;
 let dipStartTime = 0;
 let isCooldown = false;
 
-/**
- * Sync jump factor setting with extension storage on startup.
- */
+// Sync user's saved jump setting
 if (extensionAPI && extensionAPI.storage && extensionAPI.storage.sync) {
   extensionAPI.storage.sync.get({ jumpFactor: 4 }, (items) => {
     jumpSlider.value = items.jumpFactor;
@@ -53,7 +50,7 @@ jumpSlider.addEventListener('input', (e) => {
 });
 
 /**
- * Initializes the MediaPipe FaceLandmarker task using bundled local assets.
+ * Initializes the MediaPipe FaceLandmarker task using bundled local WASM assets.
  */
 async function initMediaPipe() {
   if (faceLandmarker) return;
@@ -61,7 +58,7 @@ async function initMediaPipe() {
   statusIndicator.textContent = "LOADING AI ENGINE...";
   statusIndicator.className = "";
 
-  // The vision_bundle.js IIFE defines the global 'Vision' object
+  // vision_bundle.js exports global object window.Vision or directly on window
   const vision = window.Vision || window;
   
   if (!vision.FilesetResolver || !vision.FaceLandmarker) {
@@ -69,70 +66,89 @@ async function initMediaPipe() {
     throw new Error("MediaPipe Vision library bundle failed to load.");
   }
 
-  // Resolve WASM assets relative to extension root URL
+  // Resolve absolute paths for local extension assets
   const wasmPath = extensionAPI.runtime.getURL("lib");
   const modelPath = extensionAPI.runtime.getURL("lib/face_landmarker.task");
 
-  console.log("[TabAssist Debug] Resolving WASM assets from:", wasmPath);
-  console.log("[TabAssist Debug] Loading model asset from:", modelPath);
+  console.log("[TabAssist Debug] Loading WASM binaries from:", wasmPath);
+  console.log("[TabAssist Debug] Loading face model from:", modelPath);
 
   const filesetResolver = await vision.FilesetResolver.forVisionTasks(wasmPath);
 
-  faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
-    baseOptions: {
-      modelAssetPath: modelPath,
-      delegate: "GPU"
-    },
-    runningMode: "VIDEO",
-    numFaces: 1
-  });
+  // Try GPU delegate first, fallback to CPU delegate if WebGL context creation fails
+  try {
+    console.log("[TabAssist Debug] Initializing FaceLandmarker with GPU delegate...");
+    faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
+      baseOptions: {
+        modelAssetPath: modelPath,
+        delegate: "GPU"
+      },
+      runningMode: "VIDEO",
+      numFaces: 1
+    });
+  } catch (gpuError) {
+    console.warn("[TabAssist Debug] GPU delegate failed, falling back to CPU delegate:", gpuError);
+    faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
+      baseOptions: {
+        modelAssetPath: modelPath,
+        delegate: "CPU"
+      },
+      runningMode: "VIDEO",
+      numFaces: 1
+    });
+  }
 
-  console.log("[TabAssist Debug] MediaPipe FaceLandmarker successfully initialized.");
+  console.log("[TabAssist Debug] MediaPipe FaceLandmarker initialized successfully.");
 }
 
 /**
- * Requests camera permission, initializes video stream and starts face tracking loop.
+ * Requests camera permission, initializes video stream and starts tracking loop.
  */
 async function startCamera() {
-  console.log("[TabAssist Debug] Start Camera clicked. Initializing tracking pipeline...");
+  console.log("[TabAssist Debug] Start Camera requested.");
   try {
     await initMediaPipe();
 
-    console.log("[TabAssist Debug] Requesting getUserMedia camera stream...");
+    console.log("[TabAssist Debug] Requesting getUserMedia stream...");
     cameraStream = await navigator.mediaDevices.getUserMedia({
       video: { width: 320, height: 240, frameRate: { ideal: 30 } },
       audio: false
     });
 
-    console.log("[TabAssist Debug] Camera stream obtained:", cameraStream);
+    console.log("[TabAssist Debug] getUserMedia success. Stream active:", cameraStream.active);
 
     videoElement.srcObject = cameraStream;
     placeholder.style.display = "none";
     videoElement.style.display = "block";
     startBtn.style.display = "none";
-    stopBtn.style.display = "block";
+    stopBtn.style.display = "flex";
 
     statusIndicator.textContent = "TRACKING ACTIVE";
     statusIndicator.className = "active";
 
-    // Play video stream explicitly to ensure continuous frame processing
     await videoElement.play();
-    console.log("[TabAssist Debug] Video playback started. Launching prediction loop...");
+    console.log("[TabAssist Debug] Video element playback active. Launching frame detection loop...");
     predictWebcam();
   } catch (err) {
-    console.error("[TabAssist Debug] Detailed Camera / MediaPipe Error:", err);
-    console.error("[TabAssist Debug] Error Name:", err.name, "| Message:", err.message, "| Stack:", err.stack);
+    console.error("[TabAssist Debug] Camera / MediaPipe Error Exception:", err);
+    console.error(`[TabAssist Debug] Name: ${err.name} | Message: ${err.message}`);
     
-    statusIndicator.textContent = err.name === "NotAllowedError" ? "CAMERA PERMISSION DENIED" : "CAMERA ERROR";
+    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+      statusIndicator.textContent = "CAMERA PERMISSION DENIED";
+    } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+      statusIndicator.textContent = "NO WEBCAM FOUND";
+    } else {
+      statusIndicator.textContent = `ERROR: ${err.message || "CAMERA SETUP FAILED"}`;
+    }
     statusIndicator.className = "error";
   }
 }
 
 /**
- * Stops active webcam tracks and halts the frame processing loop.
+ * Stops active webcam stream and cancels animation frame loop.
  */
 function stopCamera() {
-  console.log("[TabAssist Debug] Stopping camera and cleaning up resources...");
+  console.log("[TabAssist Debug] Stopping camera tracking...");
   if (cameraStream) {
     cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
@@ -147,7 +163,7 @@ function stopCamera() {
   videoElement.srcObject = null;
   videoElement.style.display = "none";
   placeholder.style.display = "block";
-  startBtn.style.display = "block";
+  startBtn.style.display = "flex";
   stopBtn.style.display = "none";
 
   statusIndicator.textContent = "CAMERA STOPPED";
@@ -158,7 +174,7 @@ function stopCamera() {
 }
 
 /**
- * Continuous animation frame processing loop for detecting face landmarks and head nods.
+ * Continuous frame detection loop.
  */
 function predictWebcam() {
   if (!cameraStream) return;
@@ -173,12 +189,12 @@ function predictWebcam() {
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         const landmarks = results.faceLandmarks[0];
-        const noseTipY = landmarks[1].y; // Index 1 represents tip of the nose
+        const noseTipY = landmarks[1].y;
 
         if (neutralNoseY === null) {
           neutralNoseY = noseTipY;
         } else {
-          // Update baseline smoothing slowly to adapt to gradual body shifts
+          // Slow baseline drift correction
           neutralNoseY = neutralNoseY * 0.95 + noseTipY * 0.05;
         }
 
@@ -190,7 +206,6 @@ function predictWebcam() {
               isDipping = true;
               dipStartTime = now;
             } else if (now - dipStartTime > MAX_NOD_DURATION_MS) {
-              // Ignore prolonged head lowerings (e.g. looking down at instrument)
               isDipping = false;
             }
           } else if (isDipping) {
@@ -204,7 +219,7 @@ function predictWebcam() {
         }
       }
     } catch (error) {
-      console.error("[TabAssist Debug] Frame landmark detection error:", error);
+      console.error("[TabAssist Debug] Frame detection error:", error);
     }
   }
 
@@ -212,7 +227,7 @@ function predictWebcam() {
 }
 
 /**
- * Sends jump notification to active browser tab and engages cooldown delay.
+ * Sends jump command to active tab content script.
  */
 function triggerTabJump() {
   isCooldown = true;
@@ -220,10 +235,9 @@ function triggerTabJump() {
 
   extensionAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs && tabs[0] && tabs[0].id) {
-      extensionAPI.tabs.sendMessage(tabs[0].id, { action: 'TRIGGER_JUMP' }, () => {
-        // Handle potential runtime message errors gracefully (e.g. non-supported tabs)
+      extensionAPI.tabs.sendMessage(tabs[0].id, { action: 'TRIGGER_JUMP' }, (response) => {
         if (extensionAPI.runtime.lastError) {
-          // Message ignored or recipient non-existent on current active tab
+          console.log("[TabAssist Debug] Message runtime notice (tab might not be Songsterr):", extensionAPI.runtime.lastError.message);
         }
       });
     }
@@ -238,6 +252,5 @@ function triggerTabJump() {
   }, COOLDOWN_MS);
 }
 
-// Attach control event handlers
 startBtn.addEventListener('click', startCamera);
 stopBtn.addEventListener('click', stopCamera);
