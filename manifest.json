@@ -5,29 +5,30 @@
   "description": "Hands-free guitar tab navigation on Songsterr via head gesture recognition.",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "sidePanel"
   ],
   "host_permissions": [
     "https://www.songsterr.com/*"
   ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "action": {
+    "default_title": "Open TabAssist Panel"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.songsterr.com/*"],
       "js": ["content.js"]
-    }
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "TabAssist Settings"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "lib/*"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
     }
   ]
 }

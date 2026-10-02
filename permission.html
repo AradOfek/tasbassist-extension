@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TabAssist Camera Authorization</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      background: #38bdf8;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Allow Camera Access for TabAssist</h2>
+  <p>Click below to grant camera access for hands-free tab navigation.</p>
+  <button id="requestBtn">Grant Camera Permission</button>
+
+  <script src="permission.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 /**
- * TabAssist Extension Popup Script
+ * TabAssist Extension Popup / SidePanel Script
  * 
  * Controls camera access, initializes MediaPipe face landmark tracking via local WASM assets,
  * detects downward head nod gestures, and dispatches jump events to active Songsterr tabs.
@@ -133,8 +133,13 @@ async function startCamera() {
     console.error("[TabAssist Debug] Camera / MediaPipe Error Exception:", err);
     console.error(`[TabAssist Debug] Name: ${err.name} | Message: ${err.message}`);
     
-    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-      statusIndicator.textContent = "CAMERA PERMISSION DENIED";
+    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError" || (err.message && err.message.includes("dismissed"))) {
+      statusIndicator.textContent = "OPENING PERMISSION TAB...";
+      
+      // Sidepanel workaround: Open a full browser tab to trigger the Chrome permission popup
+      if (extensionAPI && extensionAPI.tabs) {
+        extensionAPI.tabs.create({ url: extensionAPI.runtime.getURL("permission.html") });
+      }
     } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
       statusIndicator.textContent = "NO WEBCAM FOUND";
     } else {
