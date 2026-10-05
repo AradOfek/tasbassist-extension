@@ -6,7 +6,7 @@ With TabAssist, you can scroll through tabs while holding your instrument by giv
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 - **Hands-Free Tab Scrolling**: Quickly advance tabs using quick downward head nods.
 - **100% Local & Private Vision**: Powered by Google MediaPipe Tasks Vision running locally in your browser—no video or frame data ever leaves your device.
@@ -130,7 +130,7 @@ to make threshold tuning against a real camera possible without a rebuild.
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 tasbassist-extension/
@@ -156,17 +156,7 @@ tasbassist-extension/
 
 ---
 
-## 📌 Important Note on Browser Popup Behavior
-
-In Chrome Manifest V3 extensions, **toolbar popup windows automatically close** whenever you click anywhere outside the popup (e.g., clicking on the Songsterr webpage to focus or scroll). When the popup closes, its DOM context and webcam stream are destroyed by Chrome.
-
-### 💡 Recommended Setup for Practice Sessions:
-- **Pin Extension / Keep Open**: If you want to view the camera preview while practicing, **right-click the extension icon or popup title bar and select "Inspect"** (or inspect popup element). Keeping DevTools open for the popup prevents Chrome from closing it when clicking on the tab!
-- Alternatively, you can use Chrome's **Side Panel API** or open the popup in its own window tab (`chrome-extension://<EXTENSION_ID>/popup.html`).
-
----
-
-## 🚀 Installation
+## Installation
 
 1. Clone or download this repository to your local machine:
    ```bash
@@ -178,7 +168,7 @@ In Chrome Manifest V3 extensions, **toolbar popup windows automatically close** 
 
 ---
 
-## 🎸 How to Use
+## How to Use
 
 1. Navigate to any tab track on [Songsterr](https://www.songsterr.com).
 2. Click the **TabAssist** icon in your browser toolbar to open the popup.
