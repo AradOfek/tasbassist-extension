@@ -5,3 +5,8 @@ Thumbs.db
 node_modules/
 .vscode/
 .idea/
+
+# Local opencode agent config and session plans
+.opencode/
+opencode.json
+opencode.jsonc

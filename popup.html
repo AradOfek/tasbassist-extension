@@ -107,6 +107,44 @@
       cursor: pointer;
       accent-color: #38bdf8;
     }
+    .range-scale {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: #64748b;
+      margin: 2px 0 10px 0;
+    }
+    .calibration-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .calibration-row button {
+      padding: 0.45rem;
+      font-size: 0.75rem;
+    }
+    #clearCalibrationBtn {
+      flex: 0 0 auto;
+      background-color: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+    #clearCalibrationBtn:hover {
+      background-color: #334155;
+      color: #f8fafc;
+    }
+    #calibrationStatus {
+      margin-top: 8px;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: #94a3b8;
+    }
+    #calibrationStatus.error {
+      color: #f87171;
+    }
+    #calibrationStatus.success {
+      color: #4ade80;
+    }
 
     #statusIndicator {
       font-size: 0.75rem;
@@ -132,6 +170,88 @@
       text-align: center;
       margin-top: 10px;
     }
+
+    /* Debug panel. Hidden until the user asks for it, so the normal popup
+       stays as small as it was. */
+    #debugToggle {
+      width: 100%;
+      padding: 0.4rem;
+      margin-bottom: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background-color: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+    }
+    #debugToggle:hover {
+      background-color: #334155;
+      color: #f8fafc;
+    }
+    #debugPanel {
+      display: none;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #debugPanel.open {
+      display: block;
+    }
+    #debugCanvas {
+      display: block;
+      width: 100%;
+      height: 72px;
+      background: #0f172a;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    #debugReadout {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.65rem;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    #debugReadout span:nth-child(odd) {
+      color: #64748b;
+    }
+    #debugReadout span:nth-child(even) {
+      color: #7dd3fc;
+      text-align: right;
+    }
+    #debugState {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 3px;
+      text-align: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      border-radius: 3px;
+      background: #334155;
+      color: #94a3b8;
+    }
+    #debugState.DIPPING {
+      background: #f59e0b;
+      color: #0f172a;
+    }
+    #debugState.COOLDOWN {
+      background: #22c55e;
+      color: #0f172a;
+    }
+    #debugState.DISARMED {
+      background: #ef4444;
+      color: #ffffff;
+    }
+    #debugNote {
+      margin-top: 8px;
+      font-size: 0.6rem;
+      line-height: 1.4;
+      color: #64748b;
+    }
   </style>
 </head>
 <body>
@@ -156,11 +276,51 @@
     <input type="range" id="jumpSlider" min="1" max="16" step="1" value="4" />
   </div>
 
+  <div class="control-group">
+    <label for="sensitivitySlider">
+      Nod sensitivity: <span id="sensitivityVal" class="val-display">5</span>
+      <span id="sensitivityName" class="val-display">Balanced</span>
+    </label>
+    <input type="range" id="sensitivitySlider" min="1" max="10" step="1" value="5" />
+    <div class="range-scale" aria-hidden="true">
+      <span>Needs a larger nod</span>
+      <span>Counts a smaller nod</span>
+    </div>
+    <div class="calibration-row">
+      <button id="calibrateBtn" type="button">Calibrate playing posture</button>
+      <button id="clearCalibrationBtn" type="button" style="display:none;">Clear</button>
+    </div>
+    <div id="calibrationStatus" role="status">No playing posture saved.</div>
+  </div>
+
   <div id="statusIndicator">CAMERA OFF</div>
+
+  <button id="debugToggle">Show detector debug</button>
+
+  <div id="debugPanel">
+    <div id="debugState">IDLE</div>
+    <canvas id="debugCanvas" width="252" height="72"></canvas>
+    <div id="debugReadout">
+      <span>source</span><span id="dbgSource">-</span>
+      <span>signal</span><span id="dbgSignal">-</span>
+      <span>smoothed</span><span id="dbgSmooth">-</span>
+      <span>baseline</span><span id="dbgBase">-</span>
+      <span>delta</span><span id="dbgDelta">-</span>
+      <span>dip ref</span><span id="dbgRef">-</span>
+      <span>peak depth</span><span id="dbgDepth">-</span>
+      <span>nose pitch</span><span id="dbgPitch">-</span>
+      <span>eye shape</span><span id="dbgEyeShape">-</span>
+      <span>eye dist</span><span id="dbgEye">-</span>
+      <span>roll</span><span id="dbgRoll">-</span>
+      <span>enter / exit</span><span id="dbgThresh">-</span>
+    </div>
+    <div id="debugNote"></div>
+  </div>
 
   <div class="privacy-badge">🔒 100% On-Device Processing</div>
 
   <script src="lib/vision_bundle.js"></script>
+  <script src="nodDetector.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
