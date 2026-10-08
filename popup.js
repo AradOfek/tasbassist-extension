@@ -1,6 +1,6 @@
 /**
  * TabAssist Extension Popup / SidePanel Script
- * 
+ *
  * Controls camera access, initializes MediaPipe face landmark tracking via local WASM assets,
  * detects downward head nod gestures, and dispatches jump events to active Songsterr tabs.
  */
@@ -87,8 +87,7 @@ function getStoredSettings() {
       sync.get(storedSettingDefaults, (items = {}) => {
         resolve({ ...storedSettingDefaults, ...items });
       });
-    } catch (error) {
-      console.warn('[TabAssist Debug] Unable to read saved settings:', error);
+    } catch {
       resolve({ ...storedSettingDefaults });
     }
   });
@@ -220,9 +219,8 @@ async function initMediaPipe() {
 
   // vision_bundle.js exports global object window.Vision or directly on window
   const vision = window.Vision || window;
-  
+
   if (!vision.FilesetResolver || !vision.FaceLandmarker) {
-    console.error("[TabAssist Debug] MediaPipe Vision exports missing. Global Vision object:", window.Vision);
     throw new Error("MediaPipe Vision library bundle failed to load.");
   }
 
@@ -230,14 +228,10 @@ async function initMediaPipe() {
   const wasmPath = extensionAPI.runtime.getURL("lib");
   const modelPath = extensionAPI.runtime.getURL("lib/face_landmarker.task");
 
-  console.log("[TabAssist Debug] Loading WASM binaries from:", wasmPath);
-  console.log("[TabAssist Debug] Loading face model from:", modelPath);
-
   const filesetResolver = await vision.FilesetResolver.forVisionTasks(wasmPath);
 
   // Try GPU delegate first, fallback to CPU delegate if WebGL context creation fails
   try {
-    console.log("[TabAssist Debug] Initializing FaceLandmarker with GPU delegate...");
     faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
         modelAssetPath: modelPath,
@@ -249,8 +243,7 @@ async function initMediaPipe() {
       // matrix, rather than a projected eye-to-nose distance.
       outputFacialTransformationMatrixes: true
     });
-  } catch (gpuError) {
-    console.warn("[TabAssist Debug] GPU delegate failed, falling back to CPU delegate:", gpuError);
+  } catch {
     faceLandmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
       baseOptions: {
         modelAssetPath: modelPath,
@@ -261,15 +254,12 @@ async function initMediaPipe() {
       outputFacialTransformationMatrixes: true
     });
   }
-
-  console.log("[TabAssist Debug] MediaPipe FaceLandmarker initialized successfully.");
 }
 
 /**
  * Requests camera permission, initializes video stream and starts tracking loop.
  */
 async function startCamera() {
-  console.log("[TabAssist Debug] Start Camera requested.");
   try {
     await initMediaPipe();
 
@@ -292,13 +282,10 @@ async function startCamera() {
         : 'No playing posture saved.'
     );
 
-    console.log("[TabAssist Debug] Requesting getUserMedia stream...");
     cameraStream = await navigator.mediaDevices.getUserMedia({
       video: { width: 320, height: 240, frameRate: { ideal: 30 } },
       audio: false
     });
-
-    console.log("[TabAssist Debug] getUserMedia success. Stream active:", cameraStream.active);
 
     videoElement.srcObject = cameraStream;
     placeholder.style.display = "none";
@@ -310,15 +297,11 @@ async function startCamera() {
     statusIndicator.className = "active";
 
     await videoElement.play();
-    console.log("[TabAssist Debug] Video element playback active. Launching frame detection loop...");
     predictWebcam();
   } catch (err) {
-    console.error("[TabAssist Debug] Camera / MediaPipe Error Exception:", err);
-    console.error(`[TabAssist Debug] Name: ${err.name} | Message: ${err.message}`);
-    
     if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError" || (err.message && err.message.includes("dismissed"))) {
       statusIndicator.textContent = "OPENING PERMISSION TAB...";
-      
+
       // Sidepanel workaround: Open a full browser tab to trigger the Chrome permission popup
       if (extensionAPI && extensionAPI.tabs) {
         extensionAPI.tabs.create({ url: extensionAPI.runtime.getURL("permission.html") });
@@ -336,7 +319,6 @@ async function startCamera() {
  * Stops active webcam stream and cancels animation frame loop.
  */
 function stopCamera() {
-  console.log("[TabAssist Debug] Stopping camera tracking...");
   if (cameraStream) {
     cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
@@ -565,8 +547,8 @@ function predictWebcam() {
           debugNote.textContent = 'Waiting for a face.';
         }
       }
-    } catch (error) {
-      console.error("[TabAssist Debug] Frame detection error:", error);
+    } catch {
+      // Per-frame inference errors are ignored; the loop retries next frame.
     }
   }
 
@@ -733,10 +715,8 @@ function triggerTabJump() {
 
   extensionAPI.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs && tabs[0] && tabs[0].id) {
-      extensionAPI.tabs.sendMessage(tabs[0].id, { action: 'TRIGGER_JUMP' }, (response) => {
-        if (extensionAPI.runtime.lastError) {
-          console.log("[TabAssist Debug] Message runtime notice (tab might not be Songsterr):", extensionAPI.runtime.lastError.message);
-        }
+      extensionAPI.tabs.sendMessage(tabs[0].id, { action: 'TRIGGER_JUMP' }, () => {
+        // The active tab may not be a Songsterr page; that is expected.
       });
     }
   });
