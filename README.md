@@ -2,6 +2,8 @@
 
 Hands-free guitar tab navigation on Songsterr. Keep your hands on your instrument — just nod to scroll the tab forward.
 
+![TabAssist demo](tabassist_demo.mp4)
+
 ## Features
 
 - **Nod to scroll** — a quick downward nod jumps forward in the tab
